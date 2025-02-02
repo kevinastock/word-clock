@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wordclock Wifi Setup</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 1rem;
+    }
+
+    .container {
+      background: #ffffff;
+      width: calc(100% - 2rem);
+      max-width: 35rem;
+      padding: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: #333;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input[type="text"],
+    select,
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    select {
+      background-color: white;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .footnote {
+      font-size: 0.8rem;
+      text-align: center;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Wordclock Wifi Setup</h1>
+    <form action="/connect" method="POST">
+      <select id="ssid" name="ssid" onchange="checkOther(this)">
+        <option value="" disabled selected>Select WiFi Network</option>
+        <option value="Network1">Network1</option>
+        <option value="Network2">Network2</option>
+        <option value="Network3">Network3</option>
+        <option value="" data-is-other="true">Other...</option>
+      </select>
+      <input type="text" id="otherSSID" name="otherSSID" placeholder="Enter WiFi SSID" style="display:none;">
+      <input type="text" id="password" name="password" placeholder="WiFi Password">
+      <button type="submit">Connect</button>
+    </form>
+    <p class="footnote">Made by Kevin 🚀</p>
+    <!-- Add a refresh button. That just refreshes the page. -->
+  </div>
+
+  <script>
+    function checkOther(select) {
+      var otherInput = document.getElementById('otherSSID');
+      if (select.options[select.selectedIndex].dataset.isOther === 'true') {
+        otherInput.style.display = 'block';
+      } else {
+        otherInput.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+
+</html>
