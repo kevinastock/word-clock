@@ -1,12 +1,14 @@
 # Word Clock
 
-![the clock](.photos/clock.jpg)
+![the clock](photos/word-clock.webp)
 
 This project is a 3D-printed, word clock that displays the time using a 9×9 letter grid. 
 The entire front enclosure was designed as a single piece that works as the display, LED adapter, light baffle, and diffuser. 
 A TinyPICO microcontroller drives a matrix of APA102C LEDs and sets the time via NTP and [WorldTimeAPI](http://worldtimeapi.org).
 Configuration is handled via an onboard accelerometer to adjust brightness, manually shift time zone, or reset WiFi credentials.
 The backplate is secured with M2 heat-set inserts and hex socket screws, provides cable strain relief, and mounts for the electronics.
+
+![the clock](photos/word-clock-cart.webp)
 
 ## Bill of Materials
 
