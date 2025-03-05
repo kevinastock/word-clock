@@ -66,7 +66,8 @@ You'll need to install `esp32` version `2.0.17`. The `3.x` versions will not wor
 
 I don't have a real guide to wiring, here's a photo of one of the clocks internals:
 
-![wiring](.photos/inside.jpg)
+![wiring](photos/inside-1.webp)
+![assembly](photos/inside-2.webp)
 
 ## License & Acknowledgments
 
