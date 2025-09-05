@@ -186,15 +186,16 @@
 
     // Alternative: Use transition instead of animation
     function startFadeTransition(duration = 1000) {
-      // Set transition duration
+      // First ensure --mix is at 0% without transition
       letterElements.forEach(element => {
-        element.style.transition = `--mix ${duration}ms linear`;
+        element.style.transition = 'none';
         element.style.setProperty('--mix', '0%');
       });
 
-      // Trigger the transition by changing --mix
+      // Then set up the transition and trigger it
       requestAnimationFrame(() => {
         letterElements.forEach(element => {
+          element.style.transition = `--mix ${duration}ms linear`;
           element.style.setProperty('--mix', '100%');
         });
       });
@@ -208,6 +209,7 @@
             // Swap colors for next transition
             element.style.setProperty('--from', letterColors[index].current);
             element.style.setProperty('--to', letterColors[index].current);
+            element.style.transition = 'none';
             element.style.setProperty('--mix', '0%');
           }
         });
