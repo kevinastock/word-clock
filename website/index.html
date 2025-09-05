@@ -11,6 +11,13 @@
       src: url('Name Smile.otf') format('opentype');
     }
 
+    /* Declare animatable percentage custom property */
+    @property --mix {
+      syntax: '<percentage>';
+      inherits: false;
+      initial-value: 0%;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -48,7 +55,24 @@
       font-family: 'NameSmile', monospace;
       font-size: calc(min(100vw, 100vh) / 10);
       text-transform: uppercase;
-      color: #333;
+      --from: oklch(0.4 0 0); /* Default gray */
+      --to: oklch(0.4 0 0);   /* Default gray */
+      --mix: 0%;
+      color: color-mix(in oklch shorter hue, var(--from) calc(100% - var(--mix)), var(--to) var(--mix));
+      transition: --mix 1000ms linear;
+    }
+
+    .letter.fading {
+      --mix: 100%;
+    }
+
+    @keyframes oklch-fade {
+      from { --mix: 0%; }
+      to { --mix: 100%; }
+    }
+
+    .letter.animating {
+      animation: oklch-fade var(--fade-duration, 1000ms) linear forwards;
     }
 
     @supports (text-box-trim: trim-both) {
@@ -83,6 +107,10 @@
     // Convert to single string of all letters
     const allLetters = LETTERS.join('');
 
+    // Store letter elements and their color states
+    const letterElements = [];
+    const letterColors = [];
+
     // Generate 81 cells (9x9) with letters
     for (let i = 0; i < 81; i++) {
       const cell = document.createElement('div');
@@ -95,7 +123,140 @@
       cell.appendChild(letterSpan);
 
       gridContainer.appendChild(cell);
+      
+      // Store reference to letter element
+      letterElements.push(letterSpan);
+      
+      // Initialize color state
+      letterColors.push({
+        current: 'oklch(0.4 0 0)',  // Gray in OKLCH
+        next: null
+      });
+      
+      // Set initial CSS custom properties
+      letterSpan.style.setProperty('--from', letterColors[i].current);
+      letterSpan.style.setProperty('--to', letterColors[i].current);
     }
+
+    // Function to set the next color for a specific letter
+    function setNextColor(letterIndex, nextColor) {
+      if (letterIndex >= 0 && letterIndex < letterColors.length) {
+        letterColors[letterIndex].next = nextColor;
+        letterElements[letterIndex].style.setProperty('--to', nextColor);
+      }
+    }
+
+    // Function to set next colors for all letters
+    function setAllNextColors(colors) {
+      colors.forEach((color, index) => {
+        if (index < letterColors.length) {
+          setNextColor(index, color);
+        }
+      });
+    }
+
+    // Function to start the fade animation using CSS
+    function startFade(duration = 1000) {
+      // Set the fade duration CSS variable
+      document.documentElement.style.setProperty('--fade-duration', `${duration}ms`);
+      
+      // Reset mix to 0% and add animation class
+      letterElements.forEach((element, index) => {
+        element.style.setProperty('--mix', '0%');
+        element.classList.remove('animating');
+        // Force reflow to restart animation
+        void element.offsetWidth;
+        element.classList.add('animating');
+      });
+
+      // After animation completes, update the current colors
+      setTimeout(() => {
+        letterElements.forEach((element, index) => {
+          if (letterColors[index].next) {
+            letterColors[index].current = letterColors[index].next;
+            letterColors[index].next = null;
+            // Set --from to the new current color for next animation
+            element.style.setProperty('--from', letterColors[index].current);
+            element.style.setProperty('--mix', '0%');
+            element.classList.remove('animating');
+          }
+        });
+      }, duration);
+    }
+
+    // Alternative: Use transition instead of animation
+    function startFadeTransition(duration = 1000) {
+      // Set transition duration
+      letterElements.forEach(element => {
+        element.style.transition = `--mix ${duration}ms linear`;
+        element.style.setProperty('--mix', '0%');
+      });
+
+      // Trigger the transition by changing --mix
+      requestAnimationFrame(() => {
+        letterElements.forEach(element => {
+          element.style.setProperty('--mix', '100%');
+        });
+      });
+
+      // After transition completes, update the current colors
+      setTimeout(() => {
+        letterElements.forEach((element, index) => {
+          if (letterColors[index].next) {
+            letterColors[index].current = letterColors[index].next;
+            letterColors[index].next = null;
+            // Swap colors for next transition
+            element.style.setProperty('--from', letterColors[index].current);
+            element.style.setProperty('--to', letterColors[index].current);
+            element.style.setProperty('--mix', '0%');
+          }
+        });
+      }, duration);
+    }
+
+    // Example usage - create a rainbow effect
+    function exampleRainbowFade() {
+      const colors = [];
+      for (let i = 0; i < 81; i++) {
+        const hue = (i * 360 / 81) % 360;
+        colors.push(`oklch(0.7 0.15 ${hue})`);
+      }
+      setAllNextColors(colors);
+      startFade(2000);
+    }
+
+    // Example usage - random colors per letter
+    function exampleRandomColors() {
+      const colors = [];
+      for (let i = 0; i < 81; i++) {
+        const l = 0.4 + Math.random() * 0.4;  // Lightness between 0.4-0.8
+        const c = Math.random() * 0.3;        // Chroma between 0-0.3
+        const h = Math.random() * 360;        // Hue between 0-360
+        colors.push(`oklch(${l} ${c} ${h})`);
+      }
+      setAllNextColors(colors);
+      startFadeTransition(1500);
+    }
+
+    // Expose functions globally for easy testing
+    window.colorFade = {
+      setNextColor,
+      setAllNextColors,
+      startFade,
+      startFadeTransition,
+      exampleRainbowFade,
+      exampleRandomColors,
+      letterColors,
+      letterElements
+    };
+
+    // Log usage instructions
+    console.log('Color fade system ready! Try:');
+    console.log('colorFade.exampleRainbowFade() - Rainbow effect with animation');
+    console.log('colorFade.exampleRandomColors() - Random colors with transition');
+    console.log('colorFade.setAllNextColors([...]) - Set custom colors');
+    console.log('colorFade.startFade(duration) - Start animation-based fade');
+    console.log('colorFade.startFadeTransition(duration) - Start transition-based fade');
   </script>
 </body>
 
