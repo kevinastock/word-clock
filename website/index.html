@@ -23,7 +23,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #222;
+      background-color: #000;
       overflow: hidden;
     }
 
@@ -34,7 +34,6 @@
       width: min(100vw, 100vh);
       height: min(100vw, 100vh);
       gap: 1px;
-      background-color: #111;
     }
 
     .grid-cell {
@@ -47,16 +46,13 @@
 
     .letter {
       font-family: 'NameSmile', monospace;
-      font-size: calc(min(100vw, 100vh) / 12);
-      justify-content: center;
-      align-items: center;
+      font-size: calc(min(100vw, 100vh) / 10);
       text-transform: uppercase;
-      border: 1px solid red;
-      color: white;
+      color: #333;
     }
 
     @supports (text-box-trim: trim-both) {
-      .grid-cell {
+      .letter {
         text-box: trim-both cap alphabetic;
       }
     }
@@ -92,14 +88,11 @@
       const cell = document.createElement('div');
       cell.className = 'grid-cell';
 
-      // Generate a unique background color for each cell using HSL
-      const hue = (i * 360 / 81) % 360;
-      const saturation = 50 + (i % 3) * 20;
-      const lightness = 40 + (i % 5) * 10;
-      cell.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-
-      // Add the letter
-      cell.textContent = allLetters[i];
+      // Add the letter wrapped in a span
+      const letterSpan = document.createElement('span');
+      letterSpan.className = 'letter';
+      letterSpan.textContent = allLetters[i];
+      cell.appendChild(letterSpan);
 
       gridContainer.appendChild(cell);
     }
