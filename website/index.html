@@ -356,7 +356,7 @@
     let lastDisplayedWords = [];
     let updateTimeout = null;
 
-    function showTime(date = new Date(), fadeDuration = FADE_DURATION) {
+    function showTime(date, fadeDuration = FADE_DURATION) {
       console.log(`Showing time: ${date.toLocaleTimeString()}`);
 
       const timeWords = getTimeWords(date);
@@ -393,8 +393,6 @@
       const earlyOffset = (150 * 1000) + (FADE_DURATION / 2);
       const msUntilUpdate = msToNextFiveMinute - earlyOffset;
 
-      // FIXME make sure all rounding to five minutes is correct here and in showTime
-
       // If the calculated time is negative, add 5 minutes
       // FIXME: oh, that's a bit of a bug; what if we load the page at 12:02:30 - FADE_DURATION/4 ; we won't show the right time.
       const finalDelay = msUntilUpdate > 0 ? msUntilUpdate : msUntilUpdate + msPerFiveMinutes;
@@ -412,7 +410,7 @@
     }
 
     // Show current time on load and schedule updates
-    showTime();
+    showTime(new Date());
     scheduleNextUpdate();
 
     // Update to current time on window focus
@@ -452,7 +450,6 @@
 
     // Log usage instructions
     console.log('Word clock system ready!');
-    console.log('Click anywhere to advance time by 5 minutes');
     console.log(`Fade duration: ${FADE_DURATION / 1000}s`);
   </script>
 </body>
