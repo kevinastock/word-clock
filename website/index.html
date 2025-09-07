@@ -354,16 +354,21 @@
     }
 
     let currentTime = new Date();
+    let lastDisplayedWords = [];
 
-    function showTime() {
-      console.log(`Showing time: ${currentTime.toLocaleTimeString()}`);
+    function showTime(date = new Date(), fadeDuration = FADE_DURATION) {
+      console.log(`Showing time: ${date.toLocaleTimeString()}`);
 
-      const timeWords = getTimeWords(currentTime);
+      const timeWords = getTimeWords(date);
       console.log('Time words:', timeWords);
+
+      // Update current time and last displayed words
+      currentTime = date;
+      lastDisplayedWords = timeWords;
 
       const colors = generateTimeColors(timeWords);
       setAllNextColors(colors);
-      startFadeTransition(FADE_DURATION);
+      startFadeTransition(fadeDuration);
     }
 
     // Show current time on load
@@ -371,8 +376,23 @@
 
     // Advance time by 5 minutes on click
     document.addEventListener('click', () => {
-      currentTime = new Date(currentTime.getTime() + 5 * 60 * 1000);
-      showTime();
+      const newTime = new Date(currentTime.getTime() + 5 * 60 * 1000);
+      showTime(newTime);
+    });
+
+    // Update to current time on window focus
+    window.addEventListener('focus', () => {
+      const now = new Date();
+      const nowWords = getTimeWords(now);
+      
+      // Check if the time words have changed
+      const wordsChanged = nowWords.length !== lastDisplayedWords.length || 
+                          !nowWords.every((word, index) => word === lastDisplayedWords[index]);
+      
+      if (wordsChanged) {
+        // Show current time without fade (0ms)
+        showTime(now, 0);
+      }
     });
 
     // Expose functions globally for easy testing
