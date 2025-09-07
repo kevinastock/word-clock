@@ -359,8 +359,6 @@
     let updateTimeout = null;
 
     function showTime(date, fadeDuration = FADE_DURATION) {
-      console.log(`[showTime] Showing time for: ${date.toLocaleTimeString()}`);
-
       const timeWords = getTimeWords(date);
 
       // Update current time and last displayed words
@@ -375,11 +373,8 @@
 
     function clearUpdateTimeout() {
       if (updateTimeout) {
-        console.log('[clearUpdateTimeout] Clearing scheduled update timeout');
         clearTimeout(updateTimeout);
         updateTimeout = null;
-      } else {
-        console.log('[clearUpdateTimeout] No timeout to clear');
       }
     }
 
@@ -388,38 +383,28 @@
       clearUpdateTimeout();
 
       const now = new Date();
-      console.log('[scheduleNextUpdate] Current time:', now.toLocaleTimeString());
 
       const msPerMinute = 60 * 1000;
       const msPerFiveMinutes = 5 * msPerMinute;
 
       // Find the next 5-minute mark (e.g., 12:05, 12:10, 12:15)
       const msSinceHour = (now.getMinutes() * msPerMinute) + (now.getSeconds() * 1000) + now.getMilliseconds();
-      console.log('[scheduleNextUpdate] ms since hour:', msSinceHour);
 
       const msToNextFiveMinute = msPerFiveMinutes - (msSinceHour % msPerFiveMinutes);
-      console.log('[scheduleNextUpdate] ms to next 5-minute mark:', msToNextFiveMinute);
 
       // Schedule update 150 seconds + FADE_DURATION/2 before the 5-minute mark
       const earlyOffset = (150 * 1000) + (FADE_DURATION / 2);
-      console.log('[scheduleNextUpdate] Early offset:', earlyOffset, 'ms');
 
       const msUntilUpdate = msToNextFiveMinute - earlyOffset;
-      console.log('[scheduleNextUpdate] ms until update (before adjustment):', msUntilUpdate);
 
       // If the calculated time is negative, add 5 minutes
       const finalDelay = msUntilUpdate > 0 ? msUntilUpdate : msUntilUpdate + msPerFiveMinutes;
-      console.log('[scheduleNextUpdate] Final delay:', finalDelay / 1000, 'seconds');
 
       const nextUpdateTime = new Date(Date.now() + finalDelay);
-      console.log('[scheduleNextUpdate] Next update scheduled for:', nextUpdateTime.toLocaleTimeString());
 
       updateTimeout = setTimeout(() => {
-        console.log('[scheduleNextUpdate timeout] Timeout fired at', new Date().toLocaleTimeString());
-
         // Show time 150 seconds in the future (which will round to the next 5-minute mark unless fade duration is huge)
         const futureTime = new Date(Date.now() + 150 * 1000);
-        console.log('[scheduleNextUpdate timeout] Showing future time:', futureTime.toLocaleTimeString());
 
         showTime(futureTime);
 
@@ -427,9 +412,6 @@
         scheduleNextUpdate();
       }, finalDelay);
     }
-
-    // Show current time on load and schedule updates
-    console.log('[Initial load] Page loaded at', new Date().toLocaleTimeString());
 
     // Check if we're in the early update window
     const now = new Date();
@@ -441,14 +423,11 @@
 
     // If we're within the early update window, show the future time
     if (msUntilNextFiveMinute < earlyOffset) {
-      console.log('[Initial load] Within early update window, showing future time');
       // Calculate how far into the future we should be showing
       const msIntoFuture = earlyOffset - msUntilNextFiveMinute;
       const futureTime = new Date(Date.now() + (150 * 1000));
-      console.log('[Initial load] Showing time for:', futureTime.toLocaleTimeString());
       showTime(futureTime, 0);
     } else {
-      console.log('[Initial load] Not in early update window, showing current time');
       showTime(now, 0);
     }
 
@@ -457,7 +436,6 @@
     // Update to current time on window focus
     window.addEventListener('focus', () => {
       const now = new Date();
-      console.log('[window focus] Window gained focus at', now.toLocaleTimeString());
 
       const nowWords = getTimeWords(now);
 
@@ -466,11 +444,8 @@
         !nowWords.every((word, index) => word === lastDisplayedWords[index]);
 
       if (wordsChanged) {
-        console.log('[window focus] Time has changed, updating display immediately (no fade)');
         // Show current time without fade (0ms)
         showTime(now, 0);
-      } else {
-        console.log('[window focus] Time unchanged, not updating display');
       }
 
       // Restart the update schedule
