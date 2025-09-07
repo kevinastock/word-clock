@@ -408,7 +408,6 @@
       console.log('[scheduleNextUpdate] ms until update (before adjustment):', msUntilUpdate);
 
       // If the calculated time is negative, add 5 minutes
-      // FIXME: oh, that's a bit of a bug; what if we load the page at 12:02:30 - FADE_DURATION/4 ; we won't show the right time.
       const finalDelay = msUntilUpdate > 0 ? msUntilUpdate : msUntilUpdate + msPerFiveMinutes;
       console.log('[scheduleNextUpdate] Final delay:', finalDelay / 1000, 'seconds');
 
@@ -431,7 +430,28 @@
 
     // Show current time on load and schedule updates
     console.log('[Initial load] Page loaded at', new Date().toLocaleTimeString());
-    showTime(new Date());
+    
+    // Check if we're in the early update window
+    const now = new Date();
+    const msPerMinute = 60 * 1000;
+    const msPerFiveMinutes = 5 * msPerMinute;
+    const msSinceHour = (now.getMinutes() * msPerMinute) + (now.getSeconds() * 1000) + now.getMilliseconds();
+    const msUntilNextFiveMinute = msPerFiveMinutes - (msSinceHour % msPerFiveMinutes);
+    const earlyOffset = (150 * 1000) + (FADE_DURATION / 2);
+    
+    // If we're within the early update window, show the future time
+    if (msUntilNextFiveMinute < earlyOffset) {
+        console.log('[Initial load] Within early update window, showing future time');
+        // Calculate how far into the future we should be showing
+        const msIntoFuture = earlyOffset - msUntilNextFiveMinute;
+        const futureTime = new Date(Date.now() + (150 * 1000));
+        console.log('[Initial load] Showing time for:', futureTime.toLocaleTimeString());
+        showTime(futureTime);
+    } else {
+        console.log('[Initial load] Not in early update window, showing current time');
+        showTime(now);
+    }
+    
     scheduleNextUpdate();
 
     // Update to current time on window focus
