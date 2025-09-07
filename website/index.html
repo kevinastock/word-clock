@@ -323,25 +323,31 @@
 
     function generateTimeColors(timeWords) {
       const colors = [];
-      const activeIndices = new Set();
+      const wordToColor = new Map();
 
-      // Collect all indices for active words
+      // Generate a random color for each word
       timeWords.forEach(word => {
         if (TIME_WORDS[word]) {
-          TIME_WORDS[word].forEach(index => activeIndices.add(index));
+          // Random hue (0-360), constant chroma (0.2 for vibrant colors), constant bright lightness (0.75)
+          const hue = Math.random() * 360;
+          const randomColor = `oklch(0.75 0.2 ${hue})`;
+          wordToColor.set(word, randomColor);
         }
       });
 
-      // Use a pleasant green color for active letters
-      const greenColor = 'oklch(0.65 0.15 140)'; // Moderate brightness green
-
       // Assign colors to all letters
       for (let i = 0; i < 81; i++) {
-        if (activeIndices.has(i)) {
-          colors.push(greenColor);
-        } else {
-          colors.push('oklch(0.4 0 0)'); // Gray for inactive letters
+        let letterColor = 'oklch(0.4 0 0)'; // Default gray for inactive letters
+        
+        // Check if this index belongs to any active word
+        for (const word of timeWords) {
+          if (TIME_WORDS[word] && TIME_WORDS[word].includes(i)) {
+            letterColor = wordToColor.get(word);
+            break;
+          }
         }
+        
+        colors.push(letterColor);
       }
 
       return colors;
