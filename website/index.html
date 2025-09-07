@@ -262,9 +262,10 @@
       let hours = date.getHours();
       let minutes = date.getMinutes();
 
-      // Round to nearest 5 minutes
-      // FIXME: this doesn't round based on seconds, but it should
-      minutes = Math.round(minutes / 5) * 5;
+      // Round to nearest 5 minutes based on seconds
+      const seconds = date.getSeconds();
+      const totalMinutes = minutes + (seconds / 60);
+      minutes = Math.round(totalMinutes / 5) * 5;
 
       // Handle hour overflow when rounding
       if (minutes === 60) {
@@ -438,7 +439,6 @@
       const now = new Date();
       console.log('[window focus] Window gained focus at', now.toLocaleTimeString());
 
-      // FIXME: This isn't working right
       const nowWords = getTimeWords(now);
 
       // Check if the time words have changed
@@ -455,16 +455,6 @@
 
       // Restart the update schedule
       scheduleNextUpdate();
-    });
-
-    // Clear timeout on blur
-    window.addEventListener('blur', () => {
-      console.log('[window blur] Window lost focus at', new Date().toLocaleTimeString());
-      // FIXME: should we keep this? onblur happens even when the window is still visible.
-      // I think it's fine to just let scheduleNextUpdate be called from onfocus and have it
-      // clear previous scheduled stuff.
-
-      // clearUpdateTimeout();
     });
   </script>
 </body>
