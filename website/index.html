@@ -263,6 +263,7 @@
       let minutes = date.getMinutes();
 
       // Round to nearest 5 minutes
+      // FIXME: this doesn't round based on seconds, but it should
       minutes = Math.round(minutes / 5) * 5;
 
       // Handle hour overflow when rounding
@@ -357,23 +358,27 @@
     let updateTimeout = null;
 
     function showTime(date, fadeDuration = FADE_DURATION) {
-      console.log(`Showing time: ${date.toLocaleTimeString()}`);
+      console.log(`[showTime] Showing time for: ${date.toLocaleTimeString()}`);
 
       const timeWords = getTimeWords(date);
-      console.log('Time words:', timeWords);
 
       // Update current time and last displayed words
       lastDisplayedWords = timeWords;
 
       const colors = generateTimeColors(timeWords);
+
       setAllNextColors(colors);
+
       startFadeTransition(fadeDuration);
     }
 
     function clearUpdateTimeout() {
       if (updateTimeout) {
+        console.log('[clearUpdateTimeout] Clearing scheduled update timeout');
         clearTimeout(updateTimeout);
         updateTimeout = null;
+      } else {
+        console.log('[clearUpdateTimeout] No timeout to clear');
       }
     }
 
@@ -382,26 +387,40 @@
       clearUpdateTimeout();
 
       const now = new Date();
+      console.log('[scheduleNextUpdate] Current time:', now.toLocaleTimeString());
+
       const msPerMinute = 60 * 1000;
       const msPerFiveMinutes = 5 * msPerMinute;
 
       // Find the next 5-minute mark (e.g., 12:05, 12:10, 12:15)
       const msSinceHour = (now.getMinutes() * msPerMinute) + (now.getSeconds() * 1000) + now.getMilliseconds();
+      console.log('[scheduleNextUpdate] ms since hour:', msSinceHour);
+
       const msToNextFiveMinute = msPerFiveMinutes - (msSinceHour % msPerFiveMinutes);
+      console.log('[scheduleNextUpdate] ms to next 5-minute mark:', msToNextFiveMinute);
 
       // Schedule update 150 seconds + FADE_DURATION/2 before the 5-minute mark
       const earlyOffset = (150 * 1000) + (FADE_DURATION / 2);
+      console.log('[scheduleNextUpdate] Early offset:', earlyOffset, 'ms');
+
       const msUntilUpdate = msToNextFiveMinute - earlyOffset;
+      console.log('[scheduleNextUpdate] ms until update (before adjustment):', msUntilUpdate);
 
       // If the calculated time is negative, add 5 minutes
       // FIXME: oh, that's a bit of a bug; what if we load the page at 12:02:30 - FADE_DURATION/4 ; we won't show the right time.
       const finalDelay = msUntilUpdate > 0 ? msUntilUpdate : msUntilUpdate + msPerFiveMinutes;
+      console.log('[scheduleNextUpdate] Final delay:', finalDelay / 1000, 'seconds');
 
-      console.log(`Scheduling next update in ${finalDelay}ms (${finalDelay / 1000} seconds)`);
+      const nextUpdateTime = new Date(Date.now() + finalDelay);
+      console.log('[scheduleNextUpdate] Next update scheduled for:', nextUpdateTime.toLocaleTimeString());
 
       updateTimeout = setTimeout(() => {
-        // Show time 150 seconds in the future (which will round to the next 5-minute mark)
+        console.log('[scheduleNextUpdate timeout] Timeout fired at', new Date().toLocaleTimeString());
+
+        // Show time 150 seconds in the future (which will round to the next 5-minute mark unless fade duration is huge)
         const futureTime = new Date(Date.now() + 150 * 1000);
+        console.log('[scheduleNextUpdate timeout] Showing future time:', futureTime.toLocaleTimeString());
+
         showTime(futureTime);
 
         // Schedule the next update
@@ -410,12 +429,16 @@
     }
 
     // Show current time on load and schedule updates
+    console.log('[Initial load] Page loaded at', new Date().toLocaleTimeString());
     showTime(new Date());
     scheduleNextUpdate();
 
     // Update to current time on window focus
     window.addEventListener('focus', () => {
       const now = new Date();
+      console.log('[window focus] Window gained focus at', now.toLocaleTimeString());
+
+      // FIXME: This isn't working right
       const nowWords = getTimeWords(now);
 
       // Check if the time words have changed
@@ -423,8 +446,11 @@
         !nowWords.every((word, index) => word === lastDisplayedWords[index]);
 
       if (wordsChanged) {
+        console.log('[window focus] Time has changed, updating display immediately (no fade)');
         // Show current time without fade (0ms)
         showTime(now, 0);
+      } else {
+        console.log('[window focus] Time unchanged, not updating display');
       }
 
       // Restart the update schedule
@@ -433,24 +459,13 @@
 
     // Clear timeout on blur
     window.addEventListener('blur', () => {
-      clearUpdateTimeout();
+      console.log('[window blur] Window lost focus at', new Date().toLocaleTimeString());
+      // FIXME: should we keep this? onblur happens even when the window is still visible.
+      // I think it's fine to just let scheduleNextUpdate be called from onfocus and have it
+      // clear previous scheduled stuff.
+
+      // clearUpdateTimeout();
     });
-
-    // Expose functions globally for easy testing
-    window.colorFade = {
-      setNextColor,
-      setAllNextColors,
-      startFade,
-      startFadeTransition,
-      letterColors,
-      letterElements,
-      showTime,
-      FADE_DURATION
-    };
-
-    // Log usage instructions
-    console.log('Word clock system ready!');
-    console.log(`Fade duration: ${FADE_DURATION / 1000}s`);
   </script>
 </body>
 
