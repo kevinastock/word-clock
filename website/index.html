@@ -338,7 +338,7 @@
       // Assign colors to all letters
       for (let i = 0; i < 81; i++) {
         let letterColor = 'oklch(0.4 0 0)'; // Default gray for inactive letters
-        
+
         // Check if this index belongs to any active word
         for (const word of timeWords) {
           if (TIME_WORDS[word] && TIME_WORDS[word].includes(i)) {
@@ -346,7 +346,7 @@
             break;
           }
         }
-        
+
         colors.push(letterColor);
       }
 
@@ -386,25 +386,25 @@
       const now = new Date();
       const msPerMinute = 60 * 1000;
       const msPerFiveMinutes = 5 * msPerMinute;
-      
+
       // Find the next 5-minute mark (e.g., 12:05, 12:10, 12:15)
       const msSinceHour = (now.getMinutes() * msPerMinute) + (now.getSeconds() * 1000) + now.getMilliseconds();
       const msToNextFiveMinute = msPerFiveMinutes - (msSinceHour % msPerFiveMinutes);
-      
+
       // Schedule update 150 seconds + FADE_DURATION/2 before the 5-minute mark
       const earlyOffset = (150 * 1000) + (FADE_DURATION / 2);
       const msUntilUpdate = msToNextFiveMinute - earlyOffset;
-      
+
       // If the calculated time is negative, add 5 minutes
       const finalDelay = msUntilUpdate > 0 ? msUntilUpdate : msUntilUpdate + msPerFiveMinutes;
-      
-      console.log(`Scheduling next update in ${finalDelay}ms (${finalDelay/1000} seconds)`);
-      
+
+      console.log(`Scheduling next update in ${finalDelay}ms (${finalDelay / 1000} seconds)`);
+
       updateTimeout = setTimeout(() => {
         // Show time 150 seconds in the future (which will round to the next 5-minute mark)
         const futureTime = new Date(Date.now() + 150 * 1000);
         showTime(futureTime);
-        
+
         // Schedule the next update
         scheduleNextUpdate();
       }, finalDelay);
@@ -418,16 +418,16 @@
     window.addEventListener('focus', () => {
       const now = new Date();
       const nowWords = getTimeWords(now);
-      
+
       // Check if the time words have changed
-      const wordsChanged = nowWords.length !== lastDisplayedWords.length || 
-                          !nowWords.every((word, index) => word === lastDisplayedWords[index]);
-      
+      const wordsChanged = nowWords.length !== lastDisplayedWords.length ||
+        !nowWords.every((word, index) => word === lastDisplayedWords[index]);
+
       if (wordsChanged) {
         // Show current time without fade (0ms)
         showTime(now, 0);
       }
-      
+
       // Restart the update schedule
       scheduleNextUpdate();
     });
