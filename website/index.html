@@ -393,7 +393,10 @@
       const earlyOffset = (150 * 1000) + (FADE_DURATION / 2);
       const msUntilUpdate = msToNextFiveMinute - earlyOffset;
 
+      // FIXME make sure all rounding to five minutes is correct here and in showTime
+
       // If the calculated time is negative, add 5 minutes
+      // FIXME: oh, that's a bit of a bug; what if we load the page at 12:02:30 - FADE_DURATION/4 ; we won't show the right time.
       const finalDelay = msUntilUpdate > 0 ? msUntilUpdate : msUntilUpdate + msPerFiveMinutes;
 
       console.log(`Scheduling next update in ${finalDelay}ms (${finalDelay / 1000} seconds)`);
