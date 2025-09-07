@@ -55,8 +55,10 @@
       font-family: 'NameSmile', monospace;
       font-size: calc(min(100vw, 100vh) / 10);
       text-transform: uppercase;
-      --from: oklch(0.4 0 0); /* Default gray */
-      --to: oklch(0.4 0 0);   /* Default gray */
+      --from: oklch(0.4 0 0);
+      /* Default gray */
+      --to: oklch(0.4 0 0);
+      /* Default gray */
       --mix: 0%;
       color: color-mix(in oklch shorter hue, var(--from) calc(100% - var(--mix)), var(--to) var(--mix));
       transition: --mix 1000ms linear;
@@ -67,8 +69,13 @@
     }
 
     @keyframes oklch-fade {
-      from { --mix: 0%; }
-      to { --mix: 100%; }
+      from {
+        --mix: 0%;
+      }
+
+      to {
+        --mix: 100%;
+      }
     }
 
     .letter.animating {
@@ -123,16 +130,16 @@
       cell.appendChild(letterSpan);
 
       gridContainer.appendChild(cell);
-      
+
       // Store reference to letter element
       letterElements.push(letterSpan);
-      
+
       // Initialize color state
       letterColors.push({
         current: 'oklch(0.4 0 0)',  // Gray in OKLCH
         next: null
       });
-      
+
       // Set initial CSS custom properties
       letterSpan.style.setProperty('--from', letterColors[i].current);
       letterSpan.style.setProperty('--to', letterColors[i].current);
@@ -159,7 +166,7 @@
     function startFade(duration = 1000) {
       // Set the fade duration CSS variable
       document.documentElement.style.setProperty('--fade-duration', `${duration}ms`);
-      
+
       // Reset mix to 0% and add animation class
       letterElements.forEach((element, index) => {
         element.style.setProperty('--mix', '0%');
@@ -240,6 +247,88 @@
       startFadeTransition(1500);
     }
 
+    // Clock-based color fade system
+    const FADE_DURATION = 5000; // X seconds in milliseconds
+    const FADE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+    function generateRandomColors() {
+      const colors = [];
+      for (let i = 0; i < 81; i++) {
+        const l = 0.4 + Math.random() * 0.4;  // Lightness between 0.4-0.8
+        const c = Math.random() * 0.3;        // Chroma between 0-0.3
+        const h = Math.random() * 360;        // Hue between 0-360
+        colors.push(`oklch(${l} ${c} ${h})`);
+      }
+      return colors;
+    }
+
+    function triggerClockFade() {
+      console.log(`Clock fade triggered at ${new Date().toLocaleTimeString()}`);
+      setAllNextColors(generateRandomColors());
+      startFadeTransition(FADE_DURATION);
+    }
+
+    function calculateNextFadeTime() {
+      const now = new Date();
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+      const milliseconds = now.getMilliseconds();
+
+      // Find next minute ending in 2 or 7
+      const lastDigit = minutes % 10;
+      let minutesToNext;
+
+      if (lastDigit < 2) {
+        minutesToNext = 2 - lastDigit;
+      } else if (lastDigit < 7) {
+        minutesToNext = 7 - lastDigit;
+      } else {
+        minutesToNext = 12 - lastDigit; // Next is X2 of next 10-minute cycle
+      }
+
+      // Calculate milliseconds to the target minute at 0:00.000
+      let msToTargetMinute = (minutesToNext * 60 - seconds) * 1000 - milliseconds;
+
+      // Add 28.5 seconds (28500 ms) to reach X:X2:28.5 or X:X7:28.5
+      let msToFadeStart = msToTargetMinute + 28500;
+
+      // If we've already passed this time, go to the next 5-minute interval
+      if (msToFadeStart < 0) {
+        // Add 5 minutes
+        msToFadeStart += FADE_INTERVAL;
+      }
+
+      return msToFadeStart;
+    }
+
+    function scheduleNextFade() {
+      const msToNext = calculateNextFadeTime();
+      const nextFadeTime = new Date(Date.now() + msToNext);
+
+      console.log(`Next fade scheduled for ${nextFadeTime.toLocaleTimeString()} (in ${Math.round(msToNext / 1000)} seconds)`);
+
+      setTimeout(() => {
+        triggerClockFade();
+        scheduleNextFade(); // Schedule the next one
+      }, msToNext);
+    }
+
+    // Start the clock fade system
+    scheduleNextFade();
+
+    // Trigger an initial fade only if we're not too close to a scheduled fade
+    const msToNext = calculateNextFadeTime();
+    const MIN_SAFE_INTERVAL = FADE_DURATION + 2000; // Don't trigger if within fade duration + 2s
+
+    if (msToNext > MIN_SAFE_INTERVAL) {
+      setTimeout(() => {
+        console.log('Initial fade triggered');
+        triggerClockFade();
+      }, 1000);
+    } else {
+      console.log(`Skipping initial fade - too close to scheduled fade (${Math.round(msToNext / 1000)}s away)`);
+    }
+
     // Expose functions globally for easy testing
     window.colorFade = {
       setNextColor,
@@ -249,16 +338,18 @@
       exampleRainbowFade,
       exampleRandomColors,
       letterColors,
-      letterElements
+      letterElements,
+      triggerClockFade,
+      calculateNextFadeTime,
+      FADE_DURATION
     };
 
     // Log usage instructions
     console.log('Color fade system ready! Try:');
     console.log('colorFade.exampleRainbowFade() - Rainbow effect with animation');
     console.log('colorFade.exampleRandomColors() - Random colors with transition');
-    console.log('colorFade.setAllNextColors([...]) - Set custom colors');
-    console.log('colorFade.startFade(duration) - Start animation-based fade');
-    console.log('colorFade.startFadeTransition(duration) - Start transition-based fade');
+    console.log('colorFade.triggerClockFade() - Trigger a clock-based fade');
+    console.log(`Clock fades scheduled every 5 minutes, ${FADE_DURATION / 1000}s duration`);
   </script>
 </body>
 
