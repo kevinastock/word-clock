@@ -223,111 +223,149 @@
       }, duration);
     }
 
-    // Example usage - create a rainbow effect
-    function exampleRainbowFade() {
-      const colors = [];
-      for (let i = 0; i < 81; i++) {
-        const hue = (i * 360 / 81) % 360;
-        colors.push(`oklch(0.7 0.15 ${hue})`);
+
+    // Fade duration for color transitions
+    const FADE_DURATION = 1000; // 1 second in milliseconds
+
+    // Word to letter indices mapping
+    const TIME_WORDS = {
+      // Minutes
+      'five_min': [18, 19, 20, 21],      // FIVE (row 3) - FIVEK, K is shared with HALF
+      'ten_min': [0, 1, 2],               // TEN (row 1)
+      'quarter': [11, 12, 13, 14, 15, 16, 17], // QUARTER (row 2) - ATQUARTER, shares A and T
+      'twenty': [3, 4, 5, 6, 7, 8],      // TWENTY (row 1)
+      'twentyfive': [3, 4, 5, 6, 7, 8, 18, 19, 20, 21], // TWENTY + FIVE
+      'half': [22, 23, 24, 25, 26],      // KHALF (row 3) - K shared with FIVE, index 22
+      
+      // Past/To
+      'past': [27, 28, 29, 30],          // PAST (row 4)
+      'to': [31, 32],                    // TO (row 4) - shares O with OETEN
+      
+      // Hours
+      'one': [78, 79, 80],               // ONE (row 9) - last 3 letters WONE
+      'two': [76, 77, 78],               // TWO (row 9) - EIGHTW shares W with WONE
+      'three': [63, 64, 65, 66, 67],    // THREE (row 8)
+      'four': [36, 37, 38, 39],         // FOUR (row 5)
+      'five_hour': [68, 69, 70, 71],    // FIVE (row 8)
+      'six': [50, 51, 52],               // SIX (row 6)
+      'seven': [40, 41, 42, 43, 44],    // SEVEN (row 5)
+      'eight': [72, 73, 74, 75, 76],    // EIGHT (row 9)
+      'nine': [54, 55, 56, 57],         // NINE (row 7)
+      'ten_hour': [33, 34, 35],         // TEN (row 4) - OETEN, shares O with TO
+      'eleven': [58, 59, 60, 61, 62],   // ELEVEN (row 7)
+      'twelve': [45, 46, 47, 48, 49, 50] // TWELVE (row 6)
+    };
+
+    function getTimeWords(date) {
+      let hours = date.getHours();
+      let minutes = date.getMinutes();
+      
+      // Round to nearest 5 minutes
+      minutes = Math.round(minutes / 5) * 5;
+      
+      // Handle hour overflow when rounding
+      if (minutes === 60) {
+        minutes = 0;
+        hours = (hours + 1) % 24;
       }
-      setAllNextColors(colors);
-      startFade(2000);
+      
+      // Convert to 12-hour format
+      let displayHour = hours % 12;
+      if (displayHour === 0) displayHour = 12;
+      
+      const words = [];
+      
+      // Determine minute words
+      if (minutes === 0) {
+        // On the hour - just show the hour
+      } else if (minutes === 5) {
+        words.push('five_min', 'past');
+      } else if (minutes === 10) {
+        words.push('ten_min', 'past');
+      } else if (minutes === 15) {
+        words.push('quarter', 'past');
+      } else if (minutes === 20) {
+        words.push('twenty', 'past');
+      } else if (minutes === 25) {
+        words.push('twentyfive', 'past');
+      } else if (minutes === 30) {
+        words.push('half', 'past');
+      } else if (minutes === 35) {
+        words.push('twentyfive', 'to');
+        displayHour = (displayHour % 12) + 1; // Next hour
+      } else if (minutes === 40) {
+        words.push('twenty', 'to');
+        displayHour = (displayHour % 12) + 1;
+      } else if (minutes === 45) {
+        words.push('quarter', 'to');
+        displayHour = (displayHour % 12) + 1;
+      } else if (minutes === 50) {
+        words.push('ten_min', 'to');
+        displayHour = (displayHour % 12) + 1;
+      } else if (minutes === 55) {
+        words.push('five_min', 'to');
+        displayHour = (displayHour % 12) + 1;
+      }
+      
+      // Add hour word
+      const hourWords = {
+        1: 'one', 2: 'two', 3: 'three', 4: 'four',
+        5: 'five_hour', 6: 'six', 7: 'seven', 8: 'eight',
+        9: 'nine', 10: 'ten_hour', 11: 'eleven', 12: 'twelve'
+      };
+      
+      words.push(hourWords[displayHour]);
+      
+      return words;
     }
 
-    // Example usage - random colors per letter
-    function exampleRandomColors() {
+    function generateTimeColors(timeWords) {
       const colors = [];
+      const activeIndices = new Set();
+      
+      // Collect all indices for active words
+      timeWords.forEach(word => {
+        if (TIME_WORDS[word]) {
+          TIME_WORDS[word].forEach(index => activeIndices.add(index));
+        }
+      });
+      
+      // Use a pleasant green color for active letters
+      const greenColor = 'oklch(0.65 0.15 140)'; // Moderate brightness green
+      
+      // Assign colors to all letters
       for (let i = 0; i < 81; i++) {
-        const l = 0.4 + Math.random() * 0.4;  // Lightness between 0.4-0.8
-        const c = Math.random() * 0.3;        // Chroma between 0-0.3
-        const h = Math.random() * 360;        // Hue between 0-360
-        colors.push(`oklch(${l} ${c} ${h})`);
+        if (activeIndices.has(i)) {
+          colors.push(greenColor);
+        } else {
+          colors.push('oklch(0.4 0 0)'); // Gray for inactive letters
+        }
       }
-      setAllNextColors(colors);
-      startFadeTransition(1500);
-    }
-
-    // Clock-based color fade system
-    const FADE_DURATION = 5000; // X seconds in milliseconds
-    const FADE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-    function generateRandomColors() {
-      const colors = [];
-      for (let i = 0; i < 81; i++) {
-        const l = 0.4 + Math.random() * 0.4;  // Lightness between 0.4-0.8
-        const c = Math.random() * 0.3;        // Chroma between 0-0.3
-        const h = Math.random() * 360;        // Hue between 0-360
-        colors.push(`oklch(${l} ${c} ${h})`);
-      }
+      
       return colors;
     }
 
-    function triggerClockFade() {
-      console.log(`Clock fade triggered at ${new Date().toLocaleTimeString()}`);
-      setAllNextColors(generateRandomColors());
+    let currentTime = new Date();
+    
+    function showTime() {
+      console.log(`Showing time: ${currentTime.toLocaleTimeString()}`);
+      
+      const timeWords = getTimeWords(currentTime);
+      console.log('Time words:', timeWords);
+      
+      const colors = generateTimeColors(timeWords);
+      setAllNextColors(colors);
       startFadeTransition(FADE_DURATION);
     }
 
-    function calculateNextFadeTime() {
-      const now = new Date();
-      const minutes = now.getMinutes();
-      const seconds = now.getSeconds();
-      const milliseconds = now.getMilliseconds();
+    // Show current time on load
+    showTime();
 
-      // Find next minute ending in 2 or 7
-      const lastDigit = minutes % 10;
-      let minutesToNext;
-
-      if (lastDigit < 2) {
-        minutesToNext = 2 - lastDigit;
-      } else if (lastDigit < 7) {
-        minutesToNext = 7 - lastDigit;
-      } else {
-        minutesToNext = 12 - lastDigit; // Next is X2 of next 10-minute cycle
-      }
-
-      // Calculate milliseconds to the target minute at 0:00.000
-      let msToTargetMinute = (minutesToNext * 60 - seconds) * 1000 - milliseconds;
-
-      // Add 28.5 seconds (28500 ms) to reach X:X2:28.5 or X:X7:28.5
-      let msToFadeStart = msToTargetMinute + 28500;
-
-      // If we've already passed this time, go to the next 5-minute interval
-      if (msToFadeStart < 0) {
-        // Add 5 minutes
-        msToFadeStart += FADE_INTERVAL;
-      }
-
-      return msToFadeStart;
-    }
-
-    function scheduleNextFade() {
-      const msToNext = calculateNextFadeTime();
-      const nextFadeTime = new Date(Date.now() + msToNext);
-
-      console.log(`Next fade scheduled for ${nextFadeTime.toLocaleTimeString()} (in ${Math.round(msToNext / 1000)} seconds)`);
-
-      setTimeout(() => {
-        triggerClockFade();
-        scheduleNextFade(); // Schedule the next one
-      }, msToNext);
-    }
-
-    // Start the clock fade system
-    scheduleNextFade();
-
-    // Trigger an initial fade only if we're not too close to a scheduled fade
-    const msToNext = calculateNextFadeTime();
-    const MIN_SAFE_INTERVAL = FADE_DURATION + 2000; // Don't trigger if within fade duration + 2s
-
-    if (msToNext > MIN_SAFE_INTERVAL) {
-      setTimeout(() => {
-        console.log('Initial fade triggered');
-        triggerClockFade();
-      }, 1000);
-    } else {
-      console.log(`Skipping initial fade - too close to scheduled fade (${Math.round(msToNext / 1000)}s away)`);
-    }
+    // Advance time by 5 minutes on click
+    document.addEventListener('click', () => {
+      currentTime = new Date(currentTime.getTime() + 5 * 60 * 1000);
+      showTime();
+    });
 
     // Expose functions globally for easy testing
     window.colorFade = {
@@ -335,21 +373,17 @@
       setAllNextColors,
       startFade,
       startFadeTransition,
-      exampleRainbowFade,
-      exampleRandomColors,
       letterColors,
       letterElements,
-      triggerClockFade,
-      calculateNextFadeTime,
+      showTime,
+      currentTime,
       FADE_DURATION
     };
 
     // Log usage instructions
-    console.log('Color fade system ready! Try:');
-    console.log('colorFade.exampleRainbowFade() - Rainbow effect with animation');
-    console.log('colorFade.exampleRandomColors() - Random colors with transition');
-    console.log('colorFade.triggerClockFade() - Trigger a clock-based fade');
-    console.log(`Clock fades scheduled every 5 minutes, ${FADE_DURATION / 1000}s duration`);
+    console.log('Word clock system ready!');
+    console.log('Click anywhere to advance time by 5 minutes');
+    console.log(`Fade duration: ${FADE_DURATION / 1000}s`);
   </script>
 </body>
 
