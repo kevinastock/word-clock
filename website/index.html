@@ -353,7 +353,6 @@
       return colors;
     }
 
-    let currentTime = new Date();
     let lastDisplayedWords = [];
     let updateTimeout = null;
 
@@ -364,7 +363,6 @@
       console.log('Time words:', timeWords);
 
       // Update current time and last displayed words
-      currentTime = date;
       lastDisplayedWords = timeWords;
 
       const colors = generateTimeColors(timeWords);
@@ -446,7 +444,6 @@
       letterColors,
       letterElements,
       showTime,
-      currentTime,
       FADE_DURATION
     };
 
