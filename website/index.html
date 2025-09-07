@@ -55,9 +55,9 @@
       font-family: 'NameSmile', monospace;
       font-size: calc(min(100vw, 100vh) / 10);
       text-transform: uppercase;
-      --from: oklch(0.4 0 0);
+      --from: oklch(0.3 0 0);
       /* Default gray */
-      --to: oklch(0.4 0 0);
+      --to: oklch(0.3 0 0);
       /* Default gray */
       --mix: 0%;
       color: color-mix(in oklch shorter hue, var(--from) calc(100% - var(--mix)), var(--to) var(--mix));
@@ -136,7 +136,7 @@
 
       // Initialize color state
       letterColors.push({
-        current: 'oklch(0.4 0 0)',  // Gray in OKLCH
+        current: 'oklch(0.3 0 0)',  // Gray in OKLCH
         next: null
       });
 
@@ -225,7 +225,7 @@
 
 
     // Fade duration for color transitions
-    const FADE_DURATION = 1000;
+    const FADE_DURATION = 4000;
 
     // Word to letter indices mapping
     const TIME_WORDS = {
@@ -339,7 +339,7 @@
 
       // Assign colors to all letters
       for (let i = 0; i < 81; i++) {
-        let letterColor = 'oklch(0.4 0 0)'; // Default gray for inactive letters
+        let letterColor = 'oklch(0.3 0 0)'; // Default gray for inactive letters
 
         // Check if this index belongs to any active word
         for (const word of timeWords) {
@@ -430,7 +430,7 @@
 
     // Show current time on load and schedule updates
     console.log('[Initial load] Page loaded at', new Date().toLocaleTimeString());
-    
+
     // Check if we're in the early update window
     const now = new Date();
     const msPerMinute = 60 * 1000;
@@ -438,20 +438,20 @@
     const msSinceHour = (now.getMinutes() * msPerMinute) + (now.getSeconds() * 1000) + now.getMilliseconds();
     const msUntilNextFiveMinute = msPerFiveMinutes - (msSinceHour % msPerFiveMinutes);
     const earlyOffset = (150 * 1000) + (FADE_DURATION / 2);
-    
+
     // If we're within the early update window, show the future time
     if (msUntilNextFiveMinute < earlyOffset) {
-        console.log('[Initial load] Within early update window, showing future time');
-        // Calculate how far into the future we should be showing
-        const msIntoFuture = earlyOffset - msUntilNextFiveMinute;
-        const futureTime = new Date(Date.now() + (150 * 1000));
-        console.log('[Initial load] Showing time for:', futureTime.toLocaleTimeString());
-        showTime(futureTime);
+      console.log('[Initial load] Within early update window, showing future time');
+      // Calculate how far into the future we should be showing
+      const msIntoFuture = earlyOffset - msUntilNextFiveMinute;
+      const futureTime = new Date(Date.now() + (150 * 1000));
+      console.log('[Initial load] Showing time for:', futureTime.toLocaleTimeString());
+      showTime(futureTime, 0);
     } else {
-        console.log('[Initial load] Not in early update window, showing current time');
-        showTime(now);
+      console.log('[Initial load] Not in early update window, showing current time');
+      showTime(now, 0);
     }
-    
+
     scheduleNextUpdate();
 
     // Update to current time on window focus
