@@ -64,23 +64,6 @@
       transition: --mix 1000ms linear;
     }
 
-    .letter.fading {
-      --mix: 100%;
-    }
-
-    @keyframes oklch-fade {
-      from {
-        --mix: 0%;
-      }
-
-      to {
-        --mix: 100%;
-      }
-    }
-
-    .letter.animating {
-      animation: oklch-fade var(--fade-duration, 1000ms) linear forwards;
-    }
 
     @supports (text-box-trim: trim-both) {
       .letter {
@@ -162,36 +145,7 @@
       });
     }
 
-    // Function to start the fade animation using CSS
-    function startFade(duration = 1000) {
-      // Set the fade duration CSS variable
-      document.documentElement.style.setProperty('--fade-duration', `${duration}ms`);
-
-      // Reset mix to 0% and add animation class
-      letterElements.forEach((element, index) => {
-        element.style.setProperty('--mix', '0%');
-        element.classList.remove('animating');
-        // Force reflow to restart animation
-        void element.offsetWidth;
-        element.classList.add('animating');
-      });
-
-      // After animation completes, update the current colors
-      setTimeout(() => {
-        letterElements.forEach((element, index) => {
-          if (letterColors[index].next) {
-            letterColors[index].current = letterColors[index].next;
-            letterColors[index].next = null;
-            // Set --from to the new current color for next animation
-            element.style.setProperty('--from', letterColors[index].current);
-            element.style.setProperty('--mix', '0%');
-            element.classList.remove('animating');
-          }
-        });
-      }, duration);
-    }
-
-    // Alternative: Use transition instead of animation
+    // Use transition instead of animation
     function startFadeTransition(duration = 1000) {
       // First ensure --mix is at 0% without transition
       letterElements.forEach(element => {
