@@ -97,9 +97,8 @@
     // Convert to single string of all letters
     const allLetters = LETTERS.join('');
 
-    // Store letter elements and their color states
+    // Store letter elements
     const letterElements = [];
-    const letterColors = [];
 
     // Generate 81 cells (9x9) with letters
     for (let i = 0; i < 81; i++) {
@@ -117,30 +116,17 @@
       // Store reference to letter element
       letterElements.push(letterSpan);
 
-      // Initialize color state
-      letterColors.push({
-        current: 'oklch(0.3 0 0)',  // Gray in OKLCH
-        next: null
-      });
-
       // Set initial CSS custom properties
-      letterSpan.style.setProperty('--from', letterColors[i].current);
-      letterSpan.style.setProperty('--to', letterColors[i].current);
-    }
-
-    // Function to set the next color for a specific letter
-    function setNextColor(letterIndex, nextColor) {
-      if (letterIndex >= 0 && letterIndex < letterColors.length) {
-        letterColors[letterIndex].next = nextColor;
-        letterElements[letterIndex].style.setProperty('--to', nextColor);
-      }
+      const defaultGray = 'oklch(0.3 0 0)';
+      letterSpan.style.setProperty('--from', defaultGray);
+      letterSpan.style.setProperty('--to', defaultGray);
     }
 
     // Function to set next colors for all letters
     function setAllNextColors(colors) {
       colors.forEach((color, index) => {
-        if (index < letterColors.length) {
-          setNextColor(index, color);
+        if (index < letterElements.length) {
+          letterElements[index].style.setProperty('--to', color);
         }
       });
     }
@@ -161,18 +147,13 @@
         });
       });
 
-      // After transition completes, update the current colors
+      // After transition completes, swap the colors
       setTimeout(() => {
-        letterElements.forEach((element, index) => {
-          if (letterColors[index].next) {
-            letterColors[index].current = letterColors[index].next;
-            letterColors[index].next = null;
-            // Swap colors for next transition
-            element.style.setProperty('--from', letterColors[index].current);
-            element.style.setProperty('--to', letterColors[index].current);
-            element.style.transition = 'none';
-            element.style.setProperty('--mix', '0%');
-          }
+        letterElements.forEach(element => {
+          const toColor = element.style.getPropertyValue('--to');
+          element.style.setProperty('--from', toColor);
+          element.style.transition = 'none';
+          element.style.setProperty('--mix', '0%');
         });
       }, duration);
     }
@@ -213,7 +194,7 @@
     };
 
     function getTimeWords(date) {
-      let hours = date.getHours();
+      const hours = date.getHours();
       let minutes = date.getMinutes();
 
       // Round to nearest 5 minutes based on seconds
@@ -228,8 +209,7 @@
       }
 
       // Convert to 12-hour format
-      let displayHour = hours % 12;
-      if (displayHour === 0) displayHour = 12;
+      let displayHour = hours % 12 || 12;
 
       const words = [];
 
@@ -377,8 +357,6 @@
 
     // If we're within the early update window, show the future time
     if (msUntilNextFiveMinute < earlyOffset) {
-      // Calculate how far into the future we should be showing
-      const msIntoFuture = earlyOffset - msUntilNextFiveMinute;
       const futureTime = new Date(Date.now() + (150 * 1000));
       showTime(futureTime, 0);
     } else {
