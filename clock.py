@@ -3,11 +3,6 @@ import math
 
 from scad import circle, cube, cylinder, text, union, write_scad
 
-# Comic Sans! (fantasque) - but the Q tail dipping below the baseline is
-# frustrating. Also, characters feel a bit narrow.
-
-# Look for more square fonts
-
 # Each letter gets 12 leds in either 3x4 or 4x3, these represent if the letter
 # is Horizontal or Vertical
 H, V = True, False
